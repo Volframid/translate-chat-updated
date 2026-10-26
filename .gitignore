@@ -1,0 +1,11 @@
+.eslintrc.json
+manifest-generator.bat
+manifest-generator.js
+LOCAL_UPDATES.md
+config.json
+logs/
+
+module.config.json
+*.log
+*.bak
+node_modules/

@@ -1,0 +1,8 @@
+{
+  "name": "translate-chat-updated",
+  "version": "1.0.5",
+  "description": "Accountless TERA Toolbox chat translation.",
+  "main": "index.js",
+  "author": "CEM",
+  "license": "MIT"
+}

@@ -1,0 +1,17 @@
+{
+  "disableAutoUpdate": false,
+  "name": "translate-chat-updated",
+  "author": "CEM",
+  "version": "1.0.5",
+  "description": "Accountless chat translation with complete messages, ordered replies and original-message fallback.",
+  "options": {
+    "niceName": "Translate Chat Updated",
+    "settingsVersion": 3,
+    "settingsFile": "config.json",
+    "settingsMigrator": "lib/setting_migration.js"
+  },
+  "servers": [
+    "https://raw.githubusercontent.com/Volframid/translate-chat-updated/main/"
+  ],
+  "supportUrl": "https://github.com/Volframid/translate-chat-updated/issues"
+}
