@@ -141,14 +141,15 @@ module.exports = class Translator {
         }
         this.save(); this.status();
       },
+      diagnose: () => this.diagnose(),
       stats: () => {
         const total = key => (this.serviceTotals[key] || 0) + (this.service.stats[key] || 0);
-        this.message('Translated ' + this.stats.translated + ' | original fallback ' + this.stats.originals +
+        this.message('Incoming ' + this.stats.incoming + ' | outgoing ' + this.stats.outgoing + ' | skipped ' + this.stats.skipped + ' | requests ' + total('requests') + ' | translated ' + this.stats.translated + ' | original fallback ' + this.stats.originals +
           ' | cache hits ' + total('hits') + ' | failures ' + total('failures') + ' | timeouts ' + total('timeouts') +
           ' | unavailable ' + total('unavailable') + ' | overloaded ' + total('overloaded') +
           ' | delivery failures ' + this.stats.deliveryFailures + ' | pending ' + this.count);
       },
-      help: () => this.message('translate on/off | source auto/en/tr/ru | target en/tr/ru | send en/tr/ru/on/off | status | stats')
+      help: () => this.message('translate on/off | source auto/en/tr/ru | target en/tr/ru | send en/tr/ru/on/off | status | stats | diagnose')
     });
   }
   setLanguage(field, id, source) {
@@ -156,11 +157,19 @@ module.exports = class Translator {
     const code = language(id, source); if (!code) return this.message('Invalid language. Examples: ' + (source ? 'auto, ' : '') + 'en, tr, ru.');
     this.reset(true); this.mod.settings[field] = code; this.save(); this.status();
   }
+  diagnose() {
+    const provider = this.service.provider;
+    const info = provider.diagnostics ? provider.diagnostics() : null;
+    if (!info) return this.message('Network diagnostics unavailable.');
+    this.message('Translate 1.0.6 | Google HTTPS | network ' + info.family + ' | attempts ' + info.attempts +
+      ' | retries ' + info.retries + ' | recovered ' + info.recovered + ' | failed requests ' + info.failures +
+      ' | last result ' + (info.lastResult || 'none') + ' | last issue ' + (info.lastError || 'none'));
+  }
   status() {
     const state = this.service.availability ? this.service.availability() : { available: true };
     this.message('Translate ' + (this.mod.settings.enabled ? 'ON' : 'OFF') + ' | ' + this.mod.settings.sourceLang + ' -> ' + this.mod.settings.targetLang +
       ' | send ' + (this.mod.settings.sendMode ? this.mod.settings.sendLang : 'OFF') +
-      (!state.available ? ' | service paused ' + Math.ceil(state.retryAfterMs / 1000) + 's' : ''));
+      (!state.available ? ' | service paused ' + Math.ceil(state.retryAfterMs / 1000) + 's (' + state.reason + ')' : ''));
   }
   destructor() {
     if (this.closed) return;
