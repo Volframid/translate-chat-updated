@@ -161,9 +161,12 @@ module.exports = class Translator {
     const provider = this.service.provider;
     const info = provider.diagnostics ? provider.diagnostics() : null;
     if (!info) return this.message('Network diagnostics unavailable.');
-    this.message('Translate 1.0.6 | Google HTTPS | network ' + info.family + ' | attempts ' + info.attempts +
+    this.message('Translate 1.0.7 | Google HTTPS | network ' + info.family + ' | attempts ' + info.attempts +
       ' | retries ' + info.retries + ' | recovered ' + info.recovered + ' | failed requests ' + info.failures +
       ' | last result ' + (info.lastResult || 'none') + ' | last issue ' + (info.lastError || 'none'));
+    this.message('HTTP429 ' + info.rateLimits + ' | backoff level ' + info.rateLimitStreak + ' | mode ' + info.rateMode +
+      ' | pacing ' + info.pacingMs + 'ms | recovery probes ' + info.recoveryProbes + ' | recovered ' + info.rateRecovered +
+      ' | pause ' + Math.ceil(info.retryAfterMs / 1000) + 's' + (info.pauseReason ? ' (' + info.pauseReason + ')' : ''));
   }
   status() {
     const state = this.service.availability ? this.service.availability() : { available: true };
