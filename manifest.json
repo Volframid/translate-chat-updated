@@ -1,10 +1,10 @@
 {
   "files": {
-    "README.md": "6c6415296e63e48f167a4de285ea2a91bfe3942d13f04e70bbc4c0559817e4d4",
-    "module.json": "51705a9d8a915fe30a432a94ebac85e2c4644c4352fd1b873cf970ee1b35332b",
-    "package.json": "ca97ccd79d5f1761ba1b5e1cef4a4b415c4c893ec9e48b4a8d781b69d2231192",
-    "index.js": "25aff49ec00e3b826db0ab5cf3b3e7f7ae0646fe080f07623334608069b5e129",
-    "lib/translate.js": "15e1ad9d3fab66e702c75489dfbc93378c2944df700939586eb933c1d5521284",
+    "README.md": "3913a1e62776a6b3c983b9373119c6c7264e54d2c3d90f004bd88d1f00b9f002",
+    "module.json": "836d5361504e4481fcae5df24e5c8b944208c77e2fb0c41e302b048cebf6e00b",
+    "package.json": "734061fd792ac745c82632a6afb426fdb0a9c778995f23a8e6f5707dcf304c43",
+    "index.js": "3eb2b1a82d0f1c1a3042883c05af43978d3d5d02ea1fefef6d27974e7d078936",
+    "lib/translate.js": "629734ca10fb0c1e2bf3897a595bf0322cdd6d4f4cb2f5a103562bffb29cbe8b",
     "lib/format.js": "3f90b16b15568ad02d75186812db5a459f3eee13b33462cb4ad5549a2a8a6e6b",
     "lib/setting_migration.js": "c33d3f2c6e5605c20af7e43db2a52f8530d66df321118d89a7bde872a99433d3",
     ".gitignore": "23edbc39833a91b63801dfc5d1efe5e5445f90ea2d45d3fff9c233d993e84967"

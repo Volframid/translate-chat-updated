@@ -2,7 +2,7 @@
   "disableAutoUpdate": false,
   "name": "translate-chat-updated",
   "author": "CEM",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Accountless chat translation with complete messages, ordered replies and original-message fallback.",
   "options": {
     "niceName": "Translate Chat Updated",

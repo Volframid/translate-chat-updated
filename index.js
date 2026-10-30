@@ -5,7 +5,7 @@ const migrate = require('./lib/setting_migration');
 module.exports = class Translator {
   constructor(mod) {
     this.mod = mod; this.closed = false; this.epoch = 0; this.lanes = new Map(); this.count = 0;
-    this.stats = { incoming: 0, outgoing: 0, translated: 0, originals: 0, skipped: 0, deliveryFailures: 0 };
+    this.stats = { incoming: 0, outgoing: 0, translated: 0, originals: 0, skipped: 0, deliveryFailures: 0, unchanged: 0 };
     this.serviceTotals = {}; this.lastDeliveryWarning = null;
     mod.settings = migrate(null, 3, mod.settings);
     this.service = new TranslationService(createProvider());
@@ -42,7 +42,7 @@ module.exports = class Translator {
       const key = this.key(name, event, true);
       const lane = this.lanes.get(key);
       if (lane) {
-        for (const job of lane) { clearTimeout(job.timer); job.done = true; job.text = null; }
+        for (const job of lane) { clearTimeout(job.timer); if (job.request.cancel) job.request.cancel(); job.done = true; job.text = null; }
         this.drain(key);
       }
       return;
@@ -58,16 +58,24 @@ module.exports = class Translator {
     const key = this.key(name, event, outgoing);
     let lane = this.lanes.get(key);
     if (!lane) { lane = []; this.lanes.set(key, lane); }
-    const job = { name, version, event: { ...event }, outgoing, target, epoch: this.epoch, done: false, text: null, timer: null };
+    const job = { name, version, event: { ...event }, outgoing, target, epoch: this.epoch, done: false, text: null, timer: null, request: null };
     lane.push(job); this.count++;
     const complete = text => {
       if (job.done || this.closed || job.epoch !== this.epoch) return;
-      job.done = true; job.text = text; clearTimeout(job.timer); this.drain(key);
+      job.done = true; job.text = text; clearTimeout(job.timer);
+      if (job.request.cancel) job.request.cancel('deadline');
+      this.drain(key);
     };
-    job.timer = setTimeout(() => complete(null), 4000);
-    this.service.translate(message.text, target, source, outgoing).then(translated => {
+    const timeoutMs = outgoing ? 4000 : 10000;
+    job.request = this.service.translate(message.text, target, source, outgoing, {
+      timeoutMs, retry: !outgoing, validate: text => message.restore(text) !== null
+    });
+    job.timer = setTimeout(() => complete(null), timeoutMs);
+    job.request.then(translated => {
+      if (job.done || this.closed || job.epoch !== this.epoch) return;
       let text = translated === message.text ? null : message.restore(translated, target);
       if (text && text.replace(/\s+/g, ' ').trim() === message.restore(message.text).replace(/\s+/g, ' ').trim()) text = null;
+      if (translated && !text) this.stats.unchanged++;
       complete(text);
     }).catch(() => complete(null));
     return true;
@@ -108,7 +116,7 @@ module.exports = class Translator {
   }
   flushOutgoing() {
     for (const [key, lane] of this.lanes) if (key.startsWith('out:')) {
-      for (const job of lane) { clearTimeout(job.timer); job.done = true; job.text = null; }
+      for (const job of lane) { clearTimeout(job.timer); if (job.request.cancel) job.request.cancel(); job.done = true; job.text = null; }
       this.drain(key);
     }
   }
@@ -148,6 +156,9 @@ module.exports = class Translator {
           ' | cache hits ' + total('hits') + ' | failures ' + total('failures') + ' | timeouts ' + total('timeouts') +
           ' | unavailable ' + total('unavailable') + ' | overloaded ' + total('overloaded') +
           ' | delivery failures ' + this.stats.deliveryFailures + ' | pending ' + this.count);
+        this.message('Incoming retries ' + total('retries') + ' | recovered ' + total('recovered') +
+          ' | invalid results ' + total('invalid') + ' | queue expired ' + total('queueExpired') +
+          ' | canceled ' + total('canceled') + ' | unchanged ' + this.stats.unchanged);
       },
       help: () => this.message('translate on/off | source auto/en/tr/ru | target en/tr/ru | send en/tr/ru/on/off | status | stats | diagnose')
     });
@@ -161,7 +172,7 @@ module.exports = class Translator {
     const provider = this.service.provider;
     const info = provider.diagnostics ? provider.diagnostics() : null;
     if (!info) return this.message('Network diagnostics unavailable.');
-    this.message('Translate 1.0.7 | Google HTTPS | network ' + info.family + ' | attempts ' + info.attempts +
+    this.message('Translate 1.0.8 | Google HTTPS | network ' + info.family + ' | attempts ' + info.attempts +
       ' | retries ' + info.retries + ' | recovered ' + info.recovered + ' | failed requests ' + info.failures +
       ' | last result ' + (info.lastResult || 'none') + ' | last issue ' + (info.lastError || 'none'));
     this.message('HTTP429 ' + info.rateLimits + ' | backoff level ' + info.rateLimitStreak + ' | mode ' + info.rateMode +
